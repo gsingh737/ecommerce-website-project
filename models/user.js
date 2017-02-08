@@ -1,6 +1,8 @@
 var mongoose = require('mongoose');
 var bcrypt = require('bcryptjs');
 var Schema = mongoose.Schema;
+var crypto  = require('crypto');
+
 // User schema attributes fields
 var UserSchema = new Schema({
   email: {
@@ -11,6 +13,7 @@ var UserSchema = new Schema({
 password: {
   type: String
 },
+address: String,
 profile: {
   name:
   {
@@ -22,7 +25,6 @@ profile: {
     type: String,
     default:''
   },
-  address: String,
   history:
   [{
     date: Date,
@@ -61,6 +63,13 @@ UserSchema.pre('save', function(next) {
 UserSchema.methods.comparePassword = function(password){
   return bcrypt.compare(password, this.password);
 }
+UserSchema.methods.gravatar = function(size) {
+  if(!this.size) size = 200;
+  if(!this.email) return 'https://gravatar.com/avatar/?s' + size + '&d=reto';
+  var md5 = crypto.createHash('md5').update(this.email).digest('hex');
+  return 'https://gravatar.com/avatar/' + md5 + '?s=' + size + '&d=retro';
+}
+
 var User = mongoose.model('User', UserSchema);
 
 module.exports = {User};
