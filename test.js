@@ -1,0 +1,1 @@
+Category.find({}, (err, categ))

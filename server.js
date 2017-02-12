@@ -17,6 +17,8 @@ var MongoStore = require('connect-mongo')(session);
 var passport = require('passport');
 var secret = require('./config/secret');
 
+var cartLength =require('./middleware/middleware');
+
 const path = require('path');
 const publicPath = path.join(__dirname, '/public');
 
@@ -52,6 +54,8 @@ app.use((req, res, next)  => {
   res.locals.user = req.user;
   next();
 });
+
+app.use(cartLength);
 
 app.use((req, res, next) => {
   Category.find({}, (err, categories) => {
