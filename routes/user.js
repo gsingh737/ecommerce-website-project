@@ -109,10 +109,14 @@ router.post('/edit-profile', function(req, res, next) {
         req.flash('success', 'Successfull Edited your profile');
         return res.redirect('/edit-profile');
       });
-
-
-
     });
-})
+});
+
+router.get('/auth/facebook', passport.authenticate('facebook', {scope: 'email'}));
+
+router.get('/auth/facebook/callback', passport.authenticate('facebook', {
+  successRedirect: '/profile',
+  failureRedirect: '/login'
+}));
 
 module.exports = router;

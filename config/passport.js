@@ -1,6 +1,11 @@
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
+var FacebookStrategy = require('passport-facebook').Strategy;
+var secret = require('./secret');
 var {User} = require('../models/user');
+var async = require('async');
+var Cart = require('../models/cart');
+
 
 //serialize and deserialize
 passport.serializeUser((user, done) => {
@@ -32,6 +37,50 @@ passport.use('local-login', new LocalStrategy({
     }
 
     return done(null, user);
+  });
+}));
+
+passport.use(new FacebookStrategy(secret.facebook, (token, refreshToken, profile, done) => {
+  User.findOne({facebook: profile.id}, (err, user) => {
+    if(err){
+      return next(err);
+    }
+    if(user){
+      return done(null, user);
+    } else {
+      debugger;
+      console.log('New User');
+      async.waterfall([
+        function(callback){
+          var newUser = new User();
+          newUser.email = profile._json.email;
+          newUser.facebook = profile.id;
+          newUser.tokens.push({kind: 'facebook', token: token});
+          newUser.profile.name = profile.displayName;
+          newUser.profile.picture = 'https://graph.facebook.com/' + profile.id + '/picture?type=large';
+
+          newUser.save((err) => {
+            if(err){
+              console.log(err);
+              return done(err);
+            }
+
+            callback(null, newUser);
+          });
+        },
+        function(newUser){
+          console.log(newUser);
+            var cart = new Cart();
+            cart.owner = newUser._id;
+            cart.save((err) => {
+              if(err){
+                return done(err);
+              }
+              return done(err, newUser);
+            });
+        }
+      ]);
+    }
   });
 }));
 
